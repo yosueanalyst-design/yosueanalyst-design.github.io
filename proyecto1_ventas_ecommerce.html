@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Proyecto 1 — Análisis de Ventas E-commerce | Yosue Solis</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Sora:wght@300;400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root {
+  --bg:#0a0e1a; --surface:#111827; --border:rgba(99,179,237,0.12);
+  --accent:#63b3ed; --green:#68d391; --yellow:#f6ad55; --red:#fc8181;
+  --text:#e2e8f0; --muted:#718096;
+  --mono:'JetBrains Mono',monospace; --sans:'Sora',sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);overflow-x:hidden;}
+body::before{
+  content:'';position:fixed;inset:0;
+  background-image:linear-gradient(rgba(99,179,237,0.025) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(99,179,237,0.025) 1px,transparent 1px);
+  background-size:48px 48px;pointer-events:none;z-index:0;
+}
+
+/* NAV */
+nav{
+  position:sticky;top:0;z-index:100;
+  display:flex;justify-content:space-between;align-items:center;
+  padding:1rem 3rem;background:rgba(10,14,26,0.95);
+  backdrop-filter:blur(20px);border-bottom:1px solid var(--border);
+}
+.nav-id{font-family:var(--mono);font-size:0.68rem;color:var(--accent);letter-spacing:0.1em;}
+.nav-title{font-size:0.85rem;font-weight:600;}
+.nav-badge{
+  display:flex;align-items:center;gap:0.5rem;
+  font-family:var(--mono);font-size:0.62rem;color:var(--green);
+  background:rgba(104,211,145,0.08);border:1px solid rgba(104,211,145,0.2);padding:0.28rem 0.8rem;
+}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:blink 2s infinite;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.2}}
+
+/* HERO */
+.hero{
+  position:relative;z-index:1;
+  padding:4rem 3rem 3rem;border-bottom:1px solid var(--border);
+  display:grid;grid-template-columns:1.3fr 0.7fr;gap:4rem;align-items:start;
+}
+.eyebrow{font-family:var(--mono);font-size:0.62rem;color:var(--accent);letter-spacing:0.2em;text-transform:uppercase;margin-bottom:0.9rem;}
+h1{font-size:clamp(1.9rem,3.5vw,2.9rem);font-weight:700;line-height:1.12;margin-bottom:1rem;}
+h1 em{font-style:normal;color:var(--accent);}
+.hero-desc{font-size:0.88rem;color:var(--muted);line-height:1.9;margin-bottom:1.8rem;}
+.chips{display:flex;flex-wrap:wrap;gap:0.5rem;margin-bottom:1.8rem;}
+.chip{font-family:var(--mono);font-size:0.6rem;padding:0.22rem 0.7rem;border-radius:2px;letter-spacing:0.07em;}
+.c-sql{background:rgba(99,179,237,0.1);border:1px solid rgba(99,179,237,0.25);color:var(--accent);}
+.c-py{background:rgba(246,173,85,0.1);border:1px solid rgba(246,173,85,0.25);color:var(--yellow);}
+.c-xl{background:rgba(104,211,145,0.1);border:1px solid rgba(104,211,145,0.25);color:var(--green);}
+
+.context-box{background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--accent);padding:1.6rem;}
+.ctx-label{font-family:var(--mono);font-size:0.58rem;color:var(--accent);letter-spacing:0.18em;text-transform:uppercase;margin-bottom:1rem;}
+.ctx-item{display:flex;gap:0.8rem;margin-bottom:0.85rem;align-items:flex-start;}
+.ctx-num{font-family:var(--mono);font-size:0.68rem;color:var(--accent);min-width:22px;padding-top:0.05rem;}
+.ctx-text{font-size:0.78rem;color:var(--muted);line-height:1.65;}
+
+/* SECTION */
+.sec{position:relative;z-index:1;margin:2.5rem 3rem 1rem;display:flex;align-items:center;gap:1rem;}
+.sec span{font-family:var(--mono);font-size:0.6rem;color:var(--accent);letter-spacing:0.18em;text-transform:uppercase;white-space:nowrap;}
+.sec::after{content:'';flex:1;height:1px;background:var(--border);}
+
+/* NARRATIVE */
+.narrative{position:relative;z-index:1;margin:0 3rem 1.5rem;padding:1.4rem 1.8rem;background:var(--surface);border:1px solid var(--border);}
+.narr-step{display:flex;gap:1.2rem;align-items:flex-start;margin-bottom:1rem;}
+.narr-step:last-child{margin-bottom:0;}
+.narr-n{
+  font-family:var(--mono);font-size:0.65rem;color:var(--bg);
+  background:var(--accent);min-width:22px;height:22px;
+  display:flex;align-items:center;justify-content:center;border-radius:2px;flex-shrink:0;margin-top:0.1rem;
+}
+.narr-body{}
+.narr-title{font-size:0.82rem;font-weight:600;margin-bottom:0.3rem;}
+.narr-text{font-size:0.77rem;color:var(--muted);line-height:1.7;}
+
+/* KPIs */
+.kpis{
+  position:relative;z-index:1;
+  display:grid;grid-template-columns:repeat(4,1fr);
+  gap:1px;background:var(--border);border:1px solid var(--border);margin:0 3rem 1px;
+}
+.kpi{background:var(--surface);padding:1.5rem;position:relative;overflow:hidden;}
+.kpi::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;}
+.kpi:nth-child(1)::after{background:linear-gradient(90deg,var(--accent),transparent);}
+.kpi:nth-child(2)::after{background:linear-gradient(90deg,var(--green),transparent);}
+.kpi:nth-child(3)::after{background:linear-gradient(90deg,var(--yellow),transparent);}
+.kpi:nth-child(4)::after{background:linear-gradient(90deg,var(--red),transparent);}
+.kpi-lbl{font-family:var(--mono);font-size:0.56rem;color:var(--muted);letter-spacing:0.15em;text-transform:uppercase;margin-bottom:0.5rem;}
+.kpi-val{font-size:1.7rem;font-weight:700;line-height:1;margin-bottom:0.35rem;}
+.kpi:nth-child(1) .kpi-val{color:var(--accent);}
+.kpi:nth-child(2) .kpi-val{color:var(--green);}
+.kpi:nth-child(3) .kpi-val{color:var(--yellow);}
+.kpi:nth-child(4) .kpi-val{color:var(--red);}
+.kpi-delta{font-family:var(--mono);font-size:0.62rem;}
+.up{color:var(--green);}.dn{color:var(--red);}
+
+/* CHARTS */
+.chart-grid{
+  position:relative;z-index:1;
+  display:grid;grid-template-columns:1.5fr 1fr;
+  gap:1px;background:var(--border);border:1px solid var(--border);border-top:none;margin:0 3rem;
+}
+.chart-grid-2{
+  position:relative;z-index:1;
+  display:grid;grid-template-columns:1fr 1fr;
+  gap:1px;background:var(--border);border:1px solid var(--border);border-top:none;margin:0 3rem 2rem;
+}
+.cpanel{background:var(--surface);padding:1.6rem;}
+.cp-head{margin-bottom:1.2rem;}
+.cp-title{font-size:0.82rem;font-weight:600;margin-bottom:0.2rem;}
+.cp-sub{font-family:var(--mono);font-size:0.58rem;color:var(--muted);}
+.cw{height:200px;position:relative;}
+.cw-sm{height:175px;position:relative;}
+
+/* SQL */
+.sql-grid{position:relative;z-index:1;display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin:0 3rem 2rem;}
+.sql-box{background:var(--surface);border:1px solid var(--border);overflow:hidden;}
+.sql-bar{
+  display:flex;align-items:center;gap:0.7rem;
+  padding:0.65rem 1rem;background:rgba(0,0,0,0.25);border-bottom:1px solid var(--border);
+}
+.sdots{display:flex;gap:0.35rem;}
+.sd{width:9px;height:9px;border-radius:50%;}
+.sd1{background:#fc8181;}.sd2{background:#f6ad55;}.sd3{background:#68d391;}
+.sfn{font-family:var(--mono);font-size:0.6rem;color:var(--muted);margin-left:auto;}
+pre{padding:1.2rem;font-family:var(--mono);font-size:0.7rem;line-height:1.9;overflow-x:auto;white-space:pre;}
+.kw{color:#93c5fd;}.fn{color:#86efac;}.str{color:#fde68a;}
+.cmt{color:#374151;font-style:italic;}.num{color:#f9a8d4;}.op{color:#c4b5fd;}
+
+/* PYTHON */
+.py-box{position:relative;z-index:1;background:var(--surface);border:1px solid var(--border);overflow:hidden;margin:0 3rem 2rem;}
+.py-bar{
+  display:flex;align-items:center;gap:0.7rem;
+  padding:0.65rem 1rem;background:rgba(246,173,85,0.05);border-bottom:1px solid var(--border);
+}
+.py-fn{font-family:var(--mono);font-size:0.65rem;color:var(--yellow);}
+.py-kw{color:#93c5fd;}.py-fn2{color:#86efac;}.py-str{color:#fde68a;}
+.py-cmt{color:#374151;font-style:italic;}.py-num{color:#f9a8d4;}.py-var{color:var(--yellow);}
+
+/* EXCEL TABLE */
+.excel-wrap{position:relative;z-index:1;margin:0 3rem 2rem;background:var(--surface);border:1px solid var(--border);overflow:hidden;}
+.excel-bar{
+  display:flex;align-items:center;gap:0.8rem;padding:0.65rem 1.2rem;
+  background:rgba(104,211,145,0.05);border-bottom:1px solid var(--border);
+}
+.excel-name{font-family:var(--mono);font-size:0.68rem;color:var(--green);}
+.excel-tab{
+  margin-left:auto;font-family:var(--mono);font-size:0.58rem;
+  background:rgba(104,211,145,0.1);border:1px solid rgba(104,211,145,0.2);
+  color:var(--green);padding:0.18rem 0.6rem;
+}
+table{width:100%;border-collapse:collapse;font-size:0.76rem;}
+thead{background:rgba(255,255,255,0.03);}
+th{font-family:var(--mono);font-size:0.56rem;color:var(--muted);letter-spacing:0.12em;text-transform:uppercase;padding:0.6rem 1rem;text-align:left;border-bottom:1px solid var(--border);}
+td{padding:0.62rem 1rem;border-bottom:1px solid rgba(255,255,255,0.03);}
+tr:hover td{background:rgba(99,179,237,0.03);}
+.bdg{display:inline-block;font-family:var(--mono);font-size:0.58rem;padding:0.12rem 0.5rem;border-radius:2px;}
+.bg{background:rgba(104,211,145,0.1);color:var(--green);border:1px solid rgba(104,211,145,0.2);}
+.by{background:rgba(246,173,85,0.1);color:var(--yellow);border:1px solid rgba(246,173,85,0.2);}
+.br{background:rgba(252,129,129,0.1);color:var(--red);border:1px solid rgba(252,129,129,0.2);}
+.spark{display:flex;align-items:center;gap:0.5rem;}
+.bar{height:5px;border-radius:2px;background:var(--accent);}
+
+/* INSIGHTS */
+.insights{position:relative;z-index:1;display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin:0 3rem 3rem;}
+.ins{background:var(--surface);border:1px solid var(--border);padding:1.4rem;position:relative;overflow:hidden;}
+.ins::before{content:'';position:absolute;top:0;left:0;bottom:0;width:3px;}
+.ins:nth-child(1)::before{background:var(--accent);}
+.ins:nth-child(2)::before{background:var(--green);}
+.ins:nth-child(3)::before{background:var(--yellow);}
+.ins-icon{font-size:1.4rem;margin-bottom:0.8rem;display:block;}
+.ins-title{font-size:0.82rem;font-weight:600;margin-bottom:0.4rem;}
+.ins-text{font-size:0.75rem;color:var(--muted);line-height:1.72;}
+.ins-hl{color:var(--accent);font-weight:600;}
+
+footer{position:relative;z-index:1;border-top:1px solid var(--border);padding:1.5rem 3rem;display:flex;justify-content:space-between;align-items:center;}
+.fl{font-family:var(--mono);font-size:0.65rem;color:var(--muted);}
+.fl span{color:var(--accent);}
+
+@media(max-width:900px){
+  nav,.hero,.sec,.narrative,.insights,footer{padding-left:1.2rem;padding-right:1.2rem;}
+  .hero{grid-template-columns:1fr;gap:2rem;}
+  .kpis{grid-template-columns:1fr 1fr;margin:0 1.2rem 1px;}
+  .chart-grid,.chart-grid-2{grid-template-columns:1fr;margin:0 1.2rem;}
+  .sql-grid{grid-template-columns:1fr;margin:0 1.2rem 1.5rem;}
+  .py-box,.excel-wrap{margin:0 1.2rem 1.5rem;}
+  .insights{grid-template-columns:1fr;margin:0 1.2rem 2rem;}
+  .sec{margin-left:1.2rem;margin-right:1.2rem;}
+  .narrative{margin-left:1.2rem;margin-right:1.2rem;}
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-id">PRJ-01 · SQL + PYTHON + EXCEL</div>
+  <div class="nav-title">Análisis de Ventas E-commerce</div>
+  <div class="nav-badge"><span class="dot"></span>Yosue Solis · Data Analyst</div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div>
+    <div class="eyebrow">— Proyecto 01 · E-commerce Sales Analytics</div>
+    <h1>Análisis de Ventas<br><em>TechStore Panamá</em></h1>
+    <p class="hero-desc">
+      Una tienda de electrónica con más de 15,000 transacciones anuales tenía sus datos completamente dispersos: archivos Excel sin estructura, sin métricas consolidadas y sin visibilidad real del negocio. Se construyó un pipeline completo desde la base de datos hasta un dashboard ejecutivo en Excel, pasando por limpieza y análisis con Python.
+    </p>
+    <div class="chips">
+      <span class="chip c-sql">SQL · MySQL</span>
+      <span class="chip c-py">Python · Pandas</span>
+      <span class="chip c-py">Matplotlib</span>
+      <span class="chip c-xl">Excel Dashboard</span>
+      <span class="chip c-xl">Power Query</span>
+      <span class="chip c-xl">KPIs</span>
+    </div>
+  </div>
+  <div class="context-box">
+    <div class="ctx-label">// El problema</div>
+    <div class="ctx-item">
+      <span class="ctx-num">01</span>
+      <span class="ctx-text">12 archivos Excel separados por mes, sin estructura común ni posibilidad de cruzar datos.</span>
+    </div>
+    <div class="ctx-item">
+      <span class="ctx-num">02</span>
+      <span class="ctx-text">Sin visibilidad de qué categorías, productos o períodos generaban mayor ingreso.</span>
+    </div>
+    <div class="ctx-item">
+      <span class="ctx-num">03</span>
+      <span class="ctx-text">Gerencia tardaba 3 horas cada semana generando reportes manualmente y aún así eran imprecisos.</span>
+    </div>
+    <div class="ctx-item">
+      <span class="ctx-num">04</span>
+      <span class="ctx-text">Decisiones de inventario se tomaban sin datos reales de demanda por categoría.</span>
+    </div>
+  </div>
+</section>
+
+<!-- PASO 1: SQL -->
+<div class="sec"><span>paso 01 · extracción con sql</span></div>
+<div class="narrative">
+  <div class="narr-step">
+    <div class="narr-n">1</div>
+    <div class="narr-body">
+      <div class="narr-title">Exploración inicial de la base de datos</div>
+      <div class="narr-text">Lo primero fue conectarse a la base de datos MySQL de la tienda y entender qué tablas existían, sus relaciones y la calidad de los datos. Se detectaron registros duplicados, fechas en formato incorrecto y productos sin categoría asignada.</div>
+    </div>
+  </div>
+  <div class="narr-step">
+    <div class="narr-n">2</div>
+    <div class="narr-body">
+      <div class="narr-title">Construcción de queries de extracción</div>
+      <div class="narr-text">Se escribieron consultas SQL con JOINs entre las tablas de ventas, productos y clientes para extraer el dataset consolidado. Se usaron CTEs para organizar la lógica por etapas y funciones de ventana para calcular rankings de productos.</div>
+    </div>
+  </div>
+</div>
+<div class="sql-grid">
+  <div class="sql-box">
+    <div class="sql-bar">
+      <div class="sdots"><span class="sd sd1"></span><span class="sd sd2"></span><span class="sd sd3"></span></div>
+      <span class="sfn">01_extraccion_ventas.sql</span>
+    </div>
+<pre><span class="cmt">-- Extracción consolidada de ventas 2024</span>
+<span class="cmt">-- JOIN entre ventas, productos y clientes</span>
+
+<span class="kw">SELECT</span>
+    v.id_venta,
+    v.fecha_venta,
+    <span class="fn">DATE_FORMAT</span>(v.fecha_venta, <span class="str">'%Y-%m'</span>) <span class="kw">AS</span> mes,
+    c.nombre_cliente,
+    c.region,
+    p.nombre_producto,
+    p.categoria,
+    v.cantidad,
+    v.precio_unitario,
+    (v.cantidad <span class="op">*</span> v.precio_unitario) <span class="kw">AS</span> ingreso_total,
+    v.estado_venta,
+    v.canal_venta
+<span class="kw">FROM</span> ventas v
+<span class="kw">INNER JOIN</span> productos p
+    <span class="kw">ON</span> v.id_producto <span class="op">=</span> p.id_producto
+<span class="kw">INNER JOIN</span> clientes c
+    <span class="kw">ON</span> v.id_cliente <span class="op">=</span> c.id_cliente
+<span class="kw">WHERE</span>
+    v.fecha_venta <span class="kw">BETWEEN</span> <span class="str">'2024-01-01'</span>
+      <span class="kw">AND</span> <span class="str">'2024-12-31'</span>
+    <span class="kw">AND</span> v.estado_venta <span class="op">!=</span> <span class="str">'cancelado'</span>
+<span class="kw">ORDER BY</span> v.fecha_venta <span class="kw">DESC</span>;</pre>
+  </div>
+  <div class="sql-box">
+    <div class="sql-bar">
+      <div class="sdots"><span class="sd sd1"></span><span class="sd sd2"></span><span class="sd sd3"></span></div>
+      <span class="sfn">02_kpis_categoria.sql</span>
+    </div>
+<pre><span class="cmt">-- KPIs por categoría con ranking</span>
+<span class="cmt">-- CTE + función de ventana RANK()</span>
+
+<span class="kw">WITH</span> ventas_cat <span class="kw">AS</span> (
+  <span class="kw">SELECT</span>
+    p.categoria,
+    <span class="fn">COUNT</span>(v.id_venta)        <span class="kw">AS</span> total_ventas,
+    <span class="fn">SUM</span>(v.cantidad
+      <span class="op">*</span> v.precio_unitario)    <span class="kw">AS</span> ingresos,
+    <span class="fn">AVG</span>(v.precio_unitario)   <span class="kw">AS</span> ticket_prom,
+    <span class="fn">COUNT</span>(<span class="kw">DISTINCT</span>
+      v.id_cliente)           <span class="kw">AS</span> clientes_unicos
+  <span class="kw">FROM</span> ventas v
+  <span class="kw">JOIN</span> productos p
+    <span class="kw">ON</span> v.id_producto <span class="op">=</span> p.id_producto
+  <span class="kw">WHERE</span> v.estado_venta
+    <span class="op">=</span> <span class="str">'completado'</span>
+  <span class="kw">GROUP BY</span> p.categoria
+)
+<span class="kw">SELECT</span>
+  <span class="op">*</span>,
+  <span class="fn">RANK</span>() <span class="kw">OVER</span> (
+    <span class="kw">ORDER BY</span> ingresos <span class="kw">DESC</span>
+  ) <span class="kw">AS</span> ranking_ingreso
+<span class="kw">FROM</span> ventas_cat
+<span class="kw">ORDER BY</span> ranking_ingreso;</pre>
+  </div>
+</div>
+
+<!-- PASO 2: PYTHON -->
+<div class="sec"><span>paso 02 · limpieza y análisis con python</span></div>
+<div class="narrative">
+  <div class="narr-step">
+    <div class="narr-n">3</div>
+    <div class="narr-body">
+      <div class="narr-title">Limpieza y transformación con Pandas</div>
+      <div class="narr-text">El CSV exportado desde SQL tenía valores nulos en columnas clave, fechas como texto y duplicados. Se limpió con Pandas: conversión de tipos, eliminación de duplicados, imputación de nulos y creación de columnas derivadas como mes, trimestre y rango de precio.</div>
+    </div>
+  </div>
+  <div class="narr-step">
+    <div class="narr-n">4</div>
+    <div class="narr-body">
+      <div class="narr-title">Análisis exploratorio y generación de visualizaciones</div>
+      <div class="narr-text">Con el dataset limpio se calcularon métricas clave: ingresos por mes, top productos, tasa de devolución y distribución por región. Se generaron gráficos con Matplotlib para incluirlos en el reporte Excel final.</div>
+    </div>
+  </div>
+</div>
+<div class="py-box">
+  <div class="py-bar">
+    <span>🐍</span>
+    <span class="py-fn">analisis_ventas.py</span>
+  </div>
+<pre><span class="py-kw">import</span> pandas <span class="py-kw">as</span> pd
+<span class="py-kw">import</span> matplotlib.pyplot <span class="py-kw">as</span> plt
+<span class="py-kw">import</span> matplotlib.ticker <span class="py-kw">as</span> mticker
+
+<span class="py-cmt"># ── 1. CARGA Y LIMPIEZA ────────────────────────────────────────────</span>
+df = pd.<span class="py-fn2">read_csv</span>(<span class="py-str">'ventas_2024.csv'</span>, parse_dates=[<span class="py-str">'fecha_venta'</span>])
+
+<span class="py-cmt"># Eliminar duplicados y filas sin ingreso</span>
+df = df.<span class="py-fn2">drop_duplicates</span>(subset=<span class="py-str">'id_venta'</span>)
+df = df.<span class="py-fn2">dropna</span>(subset=[<span class="py-str">'ingreso_total'</span>, <span class="py-str">'categoria'</span>])
+
+<span class="py-cmt"># Crear columnas derivadas</span>
+df[<span class="py-str">'mes'</span>]        = df[<span class="py-str">'fecha_venta'</span>].dt.<span class="py-fn2">to_period</span>(<span class="py-str">'M'</span>)
+df[<span class="py-str">'trimestre'</span>]  = df[<span class="py-str">'fecha_venta'</span>].dt.<span class="py-fn2">to_period</span>(<span class="py-str">'Q'</span>)
+df[<span class="py-str">'dia_semana'</span>] = df[<span class="py-str">'fecha_venta'</span>].dt.<span class="py-fn2">day_name</span>()
+
+<span class="py-cmt"># ── 2. MÉTRICAS CLAVE ──────────────────────────────────────────────</span>
+ingreso_total  = df[<span class="py-str">'ingreso_total'</span>].<span class="py-fn2">sum</span>()
+ticket_prom    = df[<span class="py-str">'ingreso_total'</span>].<span class="py-fn2">mean</span>()
+total_ventas   = df[<span class="py-str">'id_venta'</span>].<span class="py-fn2">nunique</span>()
+tasa_devol     = (df[<span class="py-str">'estado_venta'</span>] <span class="py-op">==</span> <span class="py-str">'devuelto'</span>).<span class="py-fn2">mean</span>() <span class="py-op">*</span> <span class="py-num">100</span>
+
+<span class="py-cmt"># ── 3. AGRUPACIONES PARA DASHBOARD ─────────────────────────────────</span>
+ventas_mes = (
+    df.<span class="py-fn2">groupby</span>(<span class="py-str">'mes'</span>)[<span class="py-str">'ingreso_total'</span>]
+    .<span class="py-fn2">sum</span>().<span class="py-fn2">reset_index</span>()
+)
+top_productos = (
+    df.<span class="py-fn2">groupby</span>(<span class="py-str">'nombre_producto'</span>)[<span class="py-str">'ingreso_total'</span>]
+    .<span class="py-fn2">sum</span>().<span class="py-fn2">nlargest</span>(<span class="py-num">5</span>)
+)
+cat_ingresos = (
+    df.<span class="py-fn2">groupby</span>(<span class="py-str">'categoria'</span>)[<span class="py-str">'ingreso_total'</span>].<span class="py-fn2">sum</span>()
+)
+
+<span class="py-cmt"># ── 4. EXPORTAR A EXCEL CON MÚLTIPLES HOJAS ────────────────────────</span>
+<span class="py-kw">with</span> pd.<span class="py-fn2">ExcelWriter</span>(
+    <span class="py-str">'reporte_ventas_2024.xlsx'</span>,
+    engine=<span class="py-str">'openpyxl'</span>
+) <span class="py-kw">as</span> writer:
+
+    df.<span class="py-fn2">to_excel</span>(writer,
+        sheet_name=<span class="py-str">'Datos_Limpios'</span>, index=<span class="py-kw">False</span>)
+    ventas_mes.<span class="py-fn2">to_excel</span>(writer,
+        sheet_name=<span class="py-str">'Ventas_Mensual'</span>, index=<span class="py-kw">False</span>)
+    top_productos.<span class="py-fn2">to_excel</span>(writer,
+        sheet_name=<span class="py-str">'Top_Productos'</span>)
+    cat_ingresos.<span class="py-fn2">to_excel</span>(writer,
+        sheet_name=<span class="py-str">'Por_Categoria'</span>)
+
+<span class="py-fn2">print</span>(<span class="py-str">f"✓ Reporte generado — {total_ventas:,} ventas procesadas"</span>)
+<span class="py-fn2">print</span>(<span class="py-str">f"  Ingresos totales : ${ingreso_total:,.2f}"</span>)
+<span class="py-fn2">print</span>(<span class="py-str">f"  Ticket promedio  : ${ticket_prom:,.2f}"</span>)
+<span class="py-fn2">print</span>(<span class="py-str">f"  Tasa devolución  : {tasa_devol:.1f}%"</span>)</pre>
+</div>
+
+<!-- KPIs -->
+<div class="sec"><span>paso 03 · resultados — dashboard ejecutivo</span></div>
+<div class="narrative">
+  <div class="narr-step">
+    <div class="narr-n">5</div>
+    <div class="narr-body">
+      <div class="narr-title">Dashboard Excel con Power Query</div>
+      <div class="narr-text">El Excel generado por Python se conectó con Power Query para crear un dashboard interactivo. Se configuraron 4 KPIs principales, gráficos de tendencia mensual, ranking de productos y desglose por categoría. El reporte se actualiza automáticamente al correr el script Python.</div>
+    </div>
+  </div>
+</div>
+<div class="kpis">
+  <div class="kpi">
+    <div class="kpi-lbl">Ingresos Totales 2024</div>
+    <div class="kpi-val">$487K</div>
+    <div class="kpi-delta up">↑ +18.4% vs 2023</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-lbl">Transacciones</div>
+    <div class="kpi-val">15,342</div>
+    <div class="kpi-delta up">↑ +2,341 nuevas</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-lbl">Ticket Promedio</div>
+    <div class="kpi-val">$31.76</div>
+    <div class="kpi-delta up">↑ +$4.20 vs Q3</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-lbl">Tasa Devolución</div>
+    <div class="kpi-val">3.2%</div>
+    <div class="kpi-delta up">↓ mejoró 0.8 pp</div>
+  </div>
+</div>
+<div class="chart-grid">
+  <div class="cpanel">
+    <div class="cp-head">
+      <div class="cp-title">Ingresos Mensuales 2024</div>
+      <div class="cp-sub">Generado con Python → importado a Excel vía Power Query</div>
+    </div>
+    <div class="cw"><canvas id="cMonthly"></canvas></div>
+  </div>
+  <div class="cpanel">
+    <div class="cp-head">
+      <div class="cp-title">Ingresos por Categoría</div>
+      <div class="cp-sub">Resultado de query SQL agrupado por categoría</div>
+    </div>
+    <div class="cw"><canvas id="cCategory"></canvas></div>
+  </div>
+</div>
+<div class="chart-grid-2">
+  <div class="cpanel">
+    <div class="cp-head">
+      <div class="cp-title">Top 5 Productos por Ingreso</div>
+      <div class="cp-sub">df.groupby('nombre_producto')['ingreso_total'].sum().nlargest(5)</div>
+    </div>
+    <div class="cw-sm"><canvas id="cProducts"></canvas></div>
+  </div>
+  <div class="cpanel">
+    <div class="cp-head">
+      <div class="cp-title">Ventas por Canal</div>
+      <div class="cp-sub">Online vs Tienda física vs Marketplace</div>
+    </div>
+    <div class="cw-sm"><canvas id="cCanal"></canvas></div>
+  </div>
+</div>
+
+<!-- EXCEL TABLE MOCK -->
+<div class="sec"><span>vista previa — tabla excel exportada</span></div>
+<div class="excel-wrap">
+  <div class="excel-bar">
+    <span>📗</span>
+    <span class="excel-name">reporte_ventas_2024.xlsx</span>
+    <span class="excel-tab">📋 Top_Productos</span>
+  </div>
+  <div style="overflow-x:auto;">
+    <table>
+      <thead>
+        <tr>
+          <th>#</th><th>Producto</th><th>Categoría</th>
+          <th>Unidades</th><th>Ingreso Total</th><th>% del Total</th>
+          <th>Tendencia</th><th>Estado</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td style="font-family:var(--mono);color:var(--muted);">01</td>
+          <td><strong>MacBook Air M2</strong></td>
+          <td>Laptops</td>
+          <td>342</td>
+          <td style="color:var(--green);font-family:var(--mono);">$409,524</td>
+          <td>
+            <div class="spark">
+              <div class="bar" style="width:85px;background:var(--green);"></div>
+              <span style="font-family:var(--mono);font-size:0.7rem;">28.4%</span>
+            </div>
+          </td>
+          <td style="color:var(--green);font-family:var(--mono);">↑ +22%</td>
+          <td><span class="bdg bg">Top</span></td>
+        </tr>
+        <tr>
+          <td style="font-family:var(--mono);color:var(--muted);">02</td>
+          <td><strong>iPhone 15 Pro</strong></td>
+          <td>Smartphones</td>
+          <td>521</td>
+          <td style="color:var(--green);font-family:var(--mono);">$364,700</td>
+          <td>
+            <div class="spark">
+              <div class="bar" style="width:70px;background:var(--accent);"></div>
+              <span style="font-family:var(--mono);font-size:0.7rem;">25.3%</span>
+            </div>
+          </td>
+          <td style="color:var(--green);font-family:var(--mono);">↑ +15%</td>
+          <td><span class="bdg bg">Top</span></td>
+        </tr>
+        <tr>
+          <td style="font-family:var(--mono);color:var(--muted);">03</td>
+          <td><strong>Sony WH-1000XM5</strong></td>
+          <td>Audio</td>
+          <td>893</td>
+          <td style="color:var(--accent);font-family:var(--mono);">$178,600</td>
+          <td>
+            <div class="spark">
+              <div class="bar" style="width:42px;"></div>
+              <span style="font-family:var(--mono);font-size:0.7rem;">12.4%</span>
+            </div>
+          </td>
+          <td style="color:var(--yellow);font-family:var(--mono);">→ +3%</td>
+          <td><span class="bdg by">Estable</span></td>
+        </tr>
+        <tr>
+          <td style="font-family:var(--mono);color:var(--muted);">04</td>
+          <td><strong>iPad Pro 12.9"</strong></td>
+          <td>Tablets</td>
+          <td>274</td>
+          <td style="color:var(--accent);font-family:var(--mono);">$164,124</td>
+          <td>
+            <div class="spark">
+              <div class="bar" style="width:38px;"></div>
+              <span style="font-family:var(--mono);font-size:0.7rem;">11.4%</span>
+            </div>
+          </td>
+          <td style="color:var(--green);font-family:var(--mono);">↑ +8%</td>
+          <td><span class="bdg bg">Top</span></td>
+        </tr>
+        <tr>
+          <td style="font-family:var(--mono);color:var(--muted);">05</td>
+          <td><strong>Samsung 55" QLED</strong></td>
+          <td>TV / Video</td>
+          <td>187</td>
+          <td style="color:var(--yellow);font-family:var(--mono);">$130,715</td>
+          <td>
+            <div class="spark">
+              <div class="bar" style="width:28px;background:var(--yellow);"></div>
+              <span style="font-family:var(--mono);font-size:0.7rem;">9.1%</span>
+            </div>
+          </td>
+          <td style="color:var(--red);font-family:var(--mono);">↓ -5%</td>
+          <td><span class="bdg by">Revisar</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- INSIGHTS -->
+<div class="sec"><span>conclusiones e insights accionables</span></div>
+<div class="insights">
+  <div class="ins">
+    <span class="ins-icon">📈</span>
+    <div class="ins-title">Laptops domina el ingreso</div>
+    <div class="ins-text">La categoría Laptops representa el <span class="ins-hl">28.4% del ingreso total</span> con solo el 12% de las unidades vendidas. El ticket promedio más alto del portafolio. Recomendación: ampliar variedad y stock en esta categoría para Q1 2025.</div>
+  </div>
+  <div class="ins">
+    <span class="ins-icon">📅</span>
+    <div class="ins-title">Estacionalidad en noviembre</div>
+    <div class="ins-text">Los meses de octubre y noviembre concentran el <span class="ins-hl">34% de las ventas anuales</span>. El análisis con Pandas reveló que sin estrategia de Black Friday el pico se perdería. Se recomienda preparar inventario desde agosto.</div>
+  </div>
+  <div class="ins">
+    <span class="ins-icon">🔄</span>
+    <div class="ins-title">Devoluciones concentradas en TV</div>
+    <div class="ins-text">El <span class="ins-hl">67% de las devoluciones</span> provienen de la categoría TV/Video, principalmente por "producto dañado en envío". Se identificó un proveedor logístico específico con 3x más incidencias que el promedio.</div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="fl">Yosue Solis · <span>Data Analyst</span> · yosue.analyst@gmail.com</div>
+  <div class="fl">Proyecto 01 · SQL + Python + Excel · 2024</div>
+</footer>
+
+<script>
+const ca = (id, type, data, opts={}) => {
+  const ctx = document.getElementById(id).getContext('2d');
+  return new Chart(ctx, { type, data, options: {
+    responsive:true, maintainAspectRatio:false,
+    plugins:{ legend:{ display: opts.legend||false, labels:{color:'#718096',font:{size:10,family:'JetBrains Mono'}} } },
+    scales: opts.noScales ? {} : {
+      x:{ grid:{color:'rgba(255,255,255,0.03)'}, ticks:{color:'#718096',font:{size:9,family:'JetBrains Mono'}} },
+      y:{ grid:{color:'rgba(255,255,255,0.05)'}, ticks:{color:'#718096',font:{size:9,family:'JetBrains Mono'}} }
+    },
+    ...opts.extra
+  }});
+};
+
+// MONTHLY
+ca('cMonthly','bar',{
+  labels:['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'],
+  datasets:[{
+    label:'Ingresos',
+    data:[28400,31200,29800,35600,38900,41200,37800,40100,42300,58900,72400,31100],
+    backgroundColor: arr => {
+      const i = arr.dataIndex;
+      return (i===10) ? 'rgba(104,211,145,0.85)' : 'rgba(99,179,237,0.55)';
+    },
+    borderColor: arr => {
+      const i = arr.dataIndex;
+      return (i===10) ? '#68d391' : '#63b3ed';
+    },
+    borderWidth:1, borderRadius:3
+  }]
+},{extra:{plugins:{tooltip:{callbacks:{label:c=>`$${(c.raw/1000).toFixed(1)}K`}}}}});
+
+// CATEGORY PIE
+ca('cCategory','doughnut',{
+  labels:['Laptops','Smartphones','Audio','Tablets','TV / Video','Otros'],
+  datasets:[{
+    data:[28.4,25.3,12.4,11.4,9.1,13.4],
+    backgroundColor:['rgba(99,179,237,0.75)','rgba(104,211,145,0.75)','rgba(246,173,85,0.75)','rgba(196,181,253,0.75)','rgba(252,129,129,0.75)','rgba(113,128,150,0.5)'],
+    borderColor:['#63b3ed','#68d391','#f6ad55','#c4b5fd','#fc8181','#718096'],
+    borderWidth:1
+  }]
+},{legend:true,noScales:true,extra:{cutout:'60%',plugins:{tooltip:{callbacks:{label:c=>`${c.label}: ${c.raw}%`}}}}});
+
+// TOP PRODUCTS
+ca('cProducts','bar',{
+  labels:['MacBook Air','iPhone 15 Pro','Sony XM5','iPad Pro','Samsung 55"'],
+  datasets:[{
+    label:'Ingreso',
+    data:[409524,364700,178600,164124,130715],
+    backgroundColor:['rgba(104,211,145,0.75)','rgba(104,211,145,0.65)','rgba(99,179,237,0.65)','rgba(99,179,237,0.55)','rgba(246,173,85,0.65)'],
+    borderRadius:3, borderWidth:0
+  }]
+},{extra:{indexAxis:'y',plugins:{tooltip:{callbacks:{label:c=>`$${(c.raw/1000).toFixed(0)}K`}}}}});
+
+// CANAL
+ca('cCanal','line',{
+  labels:['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'],
+  datasets:[
+    {
+      label:'Online',
+      data:[16200,18400,17100,21300,23800,25600,22900,24700,26100,36200,45800,19400],
+      borderColor:'#63b3ed',backgroundColor:'rgba(99,179,237,0.08)',
+      borderWidth:2,pointRadius:3,pointBackgroundColor:'#63b3ed',fill:true,tension:0.4
+    },{
+      label:'Tienda Física',
+      data:[9100,10200,9800,11400,12300,12900,11800,12600,13400,18200,21600,9200],
+      borderColor:'#68d391',backgroundColor:'rgba(104,211,145,0.05)',
+      borderWidth:2,pointRadius:3,pointBackgroundColor:'#68d391',fill:true,tension:0.4
+    },{
+      label:'Marketplace',
+      data:[3100,2600,2900,2900,2800,2700,3100,2800,2800,4500,5000,2500],
+      borderColor:'#f6ad55',backgroundColor:'rgba(246,173,85,0.05)',
+      borderWidth:2,pointRadius:3,pointBackgroundColor:'#f6ad55',fill:true,tension:0.4
+    }
+  ]
+},{legend:true});
+</script>
+</body>
+</html>

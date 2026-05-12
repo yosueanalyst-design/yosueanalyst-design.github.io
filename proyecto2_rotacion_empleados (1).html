@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Proyecto 2 — Rotación de Empleados | Yosue Solis</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Sora:wght@300;400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root {
+  --bg:#0a0e1a; --surface:#111827; --border:rgba(167,139,250,0.12);
+  --accent:#a78bfa; --green:#68d391; --yellow:#f6ad55; --red:#fc8181; --blue:#63b3ed;
+  --text:#e2e8f0; --muted:#718096;
+  --mono:'JetBrains Mono',monospace; --sans:'Sora',sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);overflow-x:hidden;}
+body::before{
+  content:'';position:fixed;inset:0;
+  background-image:linear-gradient(rgba(167,139,250,0.025) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(167,139,250,0.025) 1px,transparent 1px);
+  background-size:48px 48px;pointer-events:none;z-index:0;
+}
+nav{
+  position:sticky;top:0;z-index:100;
+  display:flex;justify-content:space-between;align-items:center;
+  padding:1rem 3rem;background:rgba(10,14,26,0.95);
+  backdrop-filter:blur(20px);border-bottom:1px solid var(--border);
+}
+.nav-id{font-family:var(--mono);font-size:0.68rem;color:var(--accent);letter-spacing:0.1em;}
+.nav-title{font-size:0.85rem;font-weight:600;}
+.nav-badge{display:flex;align-items:center;gap:0.5rem;font-family:var(--mono);font-size:0.62rem;color:var(--accent);background:rgba(167,139,250,0.08);border:1px solid rgba(167,139,250,0.2);padding:0.28rem 0.8rem;}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--accent);animation:blink 2s infinite;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.2}}
+
+.hero{position:relative;z-index:1;padding:4rem 3rem 3rem;border-bottom:1px solid var(--border);display:grid;grid-template-columns:1.3fr 0.7fr;gap:4rem;align-items:start;}
+.eyebrow{font-family:var(--mono);font-size:0.62rem;color:var(--accent);letter-spacing:0.2em;text-transform:uppercase;margin-bottom:0.9rem;}
+h1{font-size:clamp(1.9rem,3.5vw,2.9rem);font-weight:700;line-height:1.12;margin-bottom:1rem;}
+h1 em{font-style:normal;color:var(--accent);}
+.hero-desc{font-size:0.88rem;color:var(--muted);line-height:1.9;margin-bottom:1.8rem;}
+.chips{display:flex;flex-wrap:wrap;gap:0.5rem;}
+.chip{font-family:var(--mono);font-size:0.6rem;padding:0.22rem 0.7rem;border-radius:2px;letter-spacing:0.07em;}
+.c-sql{background:rgba(99,179,237,0.1);border:1px solid rgba(99,179,237,0.25);color:var(--blue);}
+.c-py{background:rgba(246,173,85,0.1);border:1px solid rgba(246,173,85,0.25);color:var(--yellow);}
+.c-ml{background:rgba(167,139,250,0.1);border:1px solid rgba(167,139,250,0.25);color:var(--accent);}
+
+.context-box{background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--accent);padding:1.6rem;}
+.ctx-label{font-family:var(--mono);font-size:0.58rem;color:var(--accent);letter-spacing:0.18em;text-transform:uppercase;margin-bottom:1rem;}
+.ctx-item{display:flex;gap:0.8rem;margin-bottom:0.85rem;align-items:flex-start;}
+.ctx-num{font-family:var(--mono);font-size:0.68rem;color:var(--accent);min-width:22px;}
+.ctx-text{font-size:0.78rem;color:var(--muted);line-height:1.65;}
+
+.sec{position:relative;z-index:1;margin:2.5rem 3rem 1rem;display:flex;align-items:center;gap:1rem;}
+.sec span{font-family:var(--mono);font-size:0.6rem;color:var(--accent);letter-spacing:0.18em;text-transform:uppercase;white-space:nowrap;}
+.sec::after{content:'';flex:1;height:1px;background:var(--border);}
+
+.narrative{position:relative;z-index:1;margin:0 3rem 1.5rem;padding:1.4rem 1.8rem;background:var(--surface);border:1px solid var(--border);}
+.narr-step{display:flex;gap:1.2rem;align-items:flex-start;margin-bottom:1rem;}
+.narr-step:last-child{margin-bottom:0;}
+.narr-n{font-family:var(--mono);font-size:0.65rem;color:var(--bg);background:var(--accent);min-width:22px;height:22px;display:flex;align-items:center;justify-content:center;border-radius:2px;flex-shrink:0;margin-top:0.1rem;}
+.narr-title{font-size:0.82rem;font-weight:600;margin-bottom:0.3rem;}
+.narr-text{font-size:0.77rem;color:var(--muted);line-height:1.7;}
+
+.kpis{position:relative;z-index:1;display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);border:1px solid var(--border);margin:0 3rem 1px;}
+.kpi{background:var(--surface);padding:1.5rem;position:relative;overflow:hidden;}
+.kpi::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;}
+.kpi:nth-child(1)::after{background:linear-gradient(90deg,var(--red),transparent);}
+.kpi:nth-child(2)::after{background:linear-gradient(90deg,var(--yellow),transparent);}
+.kpi:nth-child(3)::after{background:linear-gradient(90deg,var(--accent),transparent);}
+.kpi:nth-child(4)::after{background:linear-gradient(90deg,var(--green),transparent);}
+.kpi-lbl{font-family:var(--mono);font-size:0.56rem;color:var(--muted);letter-spacing:0.15em;text-transform:uppercase;margin-bottom:0.5rem;}
+.kpi-val{font-size:1.7rem;font-weight:700;line-height:1;margin-bottom:0.35rem;}
+.kpi:nth-child(1) .kpi-val{color:var(--red);}
+.kpi:nth-child(2) .kpi-val{color:var(--yellow);}
+.kpi:nth-child(3) .kpi-val{color:var(--accent);}
+.kpi:nth-child(4) .kpi-val{color:var(--green);}
+.kpi-delta{font-family:var(--mono);font-size:0.62rem;}
+.up{color:var(--green);}.dn{color:var(--red);}
+
+.chart-grid{position:relative;z-index:1;display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border);border:1px solid var(--border);border-top:none;margin:0 3rem;}
+.chart-grid-3{position:relative;z-index:1;display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;background:var(--border);border:1px solid var(--border);border-top:none;margin:0 3rem 2rem;}
+.cpanel{background:var(--surface);padding:1.6rem;}
+.cp-title{font-size:0.82rem;font-weight:600;margin-bottom:0.2rem;}
+.cp-sub{font-family:var(--mono);font-size:0.58rem;color:var(--muted);margin-bottom:1.2rem;}
+.cw{height:200px;position:relative;}
+.cw-sm{height:170px;position:relative;}
+
+.sql-grid{position:relative;z-index:1;display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin:0 3rem 2rem;}
+.sql-box{background:var(--surface);border:1px solid var(--border);overflow:hidden;}
+.sql-bar{display:flex;align-items:center;gap:0.7rem;padding:0.65rem 1rem;background:rgba(0,0,0,0.25);border-bottom:1px solid var(--border);}
+.sdots{display:flex;gap:0.35rem;}
+.sd{width:9px;height:9px;border-radius:50%;}
+.sd1{background:#fc8181;}.sd2{background:#f6ad55;}.sd3{background:#68d391;}
+.sfn{font-family:var(--mono);font-size:0.6rem;color:var(--muted);margin-left:auto;}
+pre{padding:1.2rem;font-family:var(--mono);font-size:0.7rem;line-height:1.9;overflow-x:auto;white-space:pre;}
+.kw{color:#93c5fd;}.fn{color:#86efac;}.str{color:#fde68a;}.cmt{color:#374151;font-style:italic;}.num{color:#f9a8d4;}.op{color:#c4b5fd;}
+
+.py-box{position:relative;z-index:1;background:var(--surface);border:1px solid var(--border);overflow:hidden;margin:0 3rem 2rem;}
+.py-bar{display:flex;align-items:center;gap:0.7rem;padding:0.65rem 1rem;background:rgba(167,139,250,0.05);border-bottom:1px solid var(--border);}
+.py-fn{font-family:var(--mono);font-size:0.65rem;color:var(--accent);}
+.py-kw{color:#93c5fd;}.py-fn2{color:#86efac;}.py-str{color:#fde68a;}.py-cmt{color:#374151;font-style:italic;}.py-num{color:#f9a8d4;}.py-var{color:var(--accent);}
+
+.risk-wrap{position:relative;z-index:1;margin:0 3rem 2rem;background:var(--surface);border:1px solid var(--border);overflow:hidden;}
+.risk-bar{display:flex;align-items:center;gap:0.8rem;padding:0.65rem 1.2rem;background:rgba(167,139,250,0.05);border-bottom:1px solid var(--border);}
+.risk-title{font-family:var(--mono);font-size:0.68rem;color:var(--accent);}
+table{width:100%;border-collapse:collapse;font-size:0.76rem;}
+thead{background:rgba(255,255,255,0.03);}
+th{font-family:var(--mono);font-size:0.56rem;color:var(--muted);letter-spacing:0.12em;text-transform:uppercase;padding:0.6rem 1rem;text-align:left;border-bottom:1px solid var(--border);}
+td{padding:0.62rem 1rem;border-bottom:1px solid rgba(255,255,255,0.03);}
+tr:hover td{background:rgba(167,139,250,0.03);}
+.rpill{display:inline-block;font-family:var(--mono);font-size:0.58rem;padding:0.15rem 0.55rem;border-radius:2px;}
+.r-alto{background:rgba(252,129,129,0.12);color:var(--red);border:1px solid rgba(252,129,129,0.25);}
+.r-med{background:rgba(246,173,85,0.12);color:var(--yellow);border:1px solid rgba(246,173,85,0.25);}
+.r-bajo{background:rgba(104,211,145,0.12);color:var(--green);border:1px solid rgba(104,211,145,0.25);}
+
+.insights{position:relative;z-index:1;display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin:0 3rem 3rem;}
+.ins{background:var(--surface);border:1px solid var(--border);padding:1.4rem;position:relative;}
+.ins::before{content:'';position:absolute;top:0;left:0;bottom:0;width:3px;}
+.ins:nth-child(1)::before{background:var(--red);}
+.ins:nth-child(2)::before{background:var(--accent);}
+.ins:nth-child(3)::before{background:var(--green);}
+.ins-icon{font-size:1.4rem;margin-bottom:0.8rem;display:block;}
+.ins-title{font-size:0.82rem;font-weight:600;margin-bottom:0.4rem;}
+.ins-text{font-size:0.75rem;color:var(--muted);line-height:1.72;}
+.ins-hl{color:var(--accent);font-weight:600;}
+
+footer{position:relative;z-index:1;border-top:1px solid var(--border);padding:1.5rem 3rem;display:flex;justify-content:space-between;align-items:center;}
+.fl{font-family:var(--mono);font-size:0.65rem;color:var(--muted);}
+.fl span{color:var(--accent);}
+
+@media(max-width:900px){
+  nav,.hero,.sec,.narrative,.insights,footer{padding-left:1.2rem;padding-right:1.2rem;}
+  .hero{grid-template-columns:1fr;gap:2rem;}
+  .kpis{grid-template-columns:1fr 1fr;margin:0 1.2rem 1px;}
+  .chart-grid,.chart-grid-3{grid-template-columns:1fr;margin:0 1.2rem;}
+  .sql-grid{grid-template-columns:1fr;margin:0 1.2rem 1.5rem;}
+  .py-box,.risk-wrap{margin:0 1.2rem 1.5rem;}
+  .insights{grid-template-columns:1fr;margin:0 1.2rem 2rem;}
+  .sec,.narrative{margin-left:1.2rem;margin-right:1.2rem;}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-id">PRJ-02 · PYTHON + SQL</div>
+  <div class="nav-title">Análisis de Rotación de Empleados</div>
+  <div class="nav-badge"><span class="dot"></span>Yosue Solis · Data Analyst</div>
+</nav>
+
+<section class="hero">
+  <div>
+    <div class="eyebrow">— Proyecto 02 · HR People Analytics</div>
+    <h1>Análisis de Rotación<br><em>RetailCorp LATAM</em></h1>
+    <p class="hero-desc">Una empresa retail con 1,200 empleados en Panamá y Costa Rica presentaba una tasa de rotación del 24% anual, el doble del promedio de la industria. RR.HH. no tenía claridad sobre qué departamentos o factores causaban las salidas. Se construyó un análisis completo con SQL y Python para identificar patrones, calcular un score de riesgo por empleado y proponer acciones concretas de retención.</p>
+    <div class="chips">
+      <span class="chip c-sql">SQL · PostgreSQL</span>
+      <span class="chip c-py">Python · Pandas</span>
+      <span class="chip c-py">Seaborn · Matplotlib</span>
+      <span class="chip c-ml">Análisis de Correlación</span>
+      <span class="chip c-ml">Scoring de Riesgo</span>
+    </div>
+  </div>
+  <div class="context-box">
+    <div class="ctx-label">// El problema</div>
+    <div class="ctx-item"><span class="ctx-num">01</span><span class="ctx-text">Tasa de rotación del 24% anual, el doble del promedio del sector retail en LATAM (12%).</span></div>
+    <div class="ctx-item"><span class="ctx-num">02</span><span class="ctx-text">Sin datos sobre qué factores —salario, horas extra, satisfacción— predicen mejor las salidas.</span></div>
+    <div class="ctx-item"><span class="ctx-num">03</span><span class="ctx-text">Costo estimado por reemplazo: $3,500 USD entre reclutamiento y capacitación.</span></div>
+    <div class="ctx-item"><span class="ctx-num">04</span><span class="ctx-text">RR.HH. reaccionaba después de las renuncias, sin capacidad de anticipar el riesgo.</span></div>
+  </div>
+</section>
+
+<div class="sec"><span>paso 01 · extracción con sql</span></div>
+<div class="narrative">
+  <div class="narr-step">
+    <div class="narr-n">1</div>
+    <div class="narr-body">
+      <div class="narr-title">Exploración y extracción del histórico de empleados</div>
+      <div class="narr-text">Se conectó a la base de datos PostgreSQL y se exploraron 4 tablas: empleados, salarios, desempeño y asistencia. Se construyó un JOIN entre todas para generar un dataset único con variables demográficas, laborales y de desempeño. Se etiquetó cada empleado con la variable binaria "salio" (1/0) para usarla como variable objetivo en el análisis.</div>
+    </div>
+  </div>
+  <div class="narr-step">
+    <div class="narr-n">2</div>
+    <div class="narr-body">
+      <div class="narr-title">Cálculo de tasas de rotación por segmento</div>
+      <div class="narr-text">Usando CTEs y funciones de ventana se calcularon las tasas de rotación por departamento y por rango de salario. Esto permitió identificar antes del análisis en Python que Ventas concentraba el mayor problema, con 38.2% de rotación frente al 8.9% de TI.</div>
+    </div>
+  </div>
+</div>
+
+<div class="sql-grid">
+  <div class="sql-box">
+    <div class="sql-bar">
+      <div class="sdots"><span class="sd sd1"></span><span class="sd sd2"></span><span class="sd sd3"></span></div>
+      <span class="sfn">01_extraccion_empleados.sql</span>
+    </div>
+<pre><span class="cmt">-- Dataset completo: activos + salientes</span>
+<span class="cmt">-- JOIN de 4 tablas con variable objetivo</span>
+
+<span class="kw">SELECT</span>
+    e.id_empleado,
+    e.edad,
+    e.genero,
+    e.departamento,
+    e.cargo,
+    <span class="fn">DATEDIFF</span>(
+      <span class="fn">COALESCE</span>(e.fecha_salida,
+        <span class="fn">CURDATE</span>()),
+      e.fecha_ingreso
+    ) <span class="op">/</span> <span class="num">365.0</span> <span class="kw">AS</span> anos_antiguedad,
+    s.salario_mensual,
+    s.ultimo_aumento_pct,
+    d.nivel_satisfaccion,
+    d.calificacion_desempeno,
+    d.proyectos_completados,
+    a.horas_extra_mes_prom,
+    <span class="kw">CASE</span>
+      <span class="kw">WHEN</span> e.fecha_salida
+             <span class="kw">IS NOT NULL</span>
+      <span class="kw">THEN</span> <span class="num">1</span> <span class="kw">ELSE</span> <span class="num">0</span>
+    <span class="kw">END</span> <span class="kw">AS</span> salio
+<span class="kw">FROM</span> empleados e
+<span class="kw">LEFT JOIN</span> salarios s
+    <span class="kw">ON</span> e.id_empleado <span class="op">=</span> s.id_empleado
+<span class="kw">LEFT JOIN</span> desempeno d
+    <span class="kw">ON</span> e.id_empleado <span class="op">=</span> d.id_empleado
+<span class="kw">LEFT JOIN</span> asistencia a
+    <span class="kw">ON</span> e.id_empleado <span class="op">=</span> a.id_empleado
+<span class="kw">WHERE</span>
+    e.fecha_ingreso <span class="op">>=</span> <span class="str">'2021-01-01'</span>;</pre>
+  </div>
+  <div class="sql-box">
+    <div class="sql-bar">
+      <div class="sdots"><span class="sd sd1"></span><span class="sd sd2"></span><span class="sd sd3"></span></div>
+      <span class="sfn">02_rotacion_por_dpto.sql</span>
+    </div>
+<pre><span class="cmt">-- Tasa de rotación por departamento</span>
+<span class="cmt">-- CTE + RANK() para ordenar por riesgo</span>
+
+<span class="kw">WITH</span> totales <span class="kw">AS</span> (
+  <span class="kw">SELECT</span>
+    departamento,
+    <span class="fn">COUNT</span>(<span class="op">*</span>)   <span class="kw">AS</span> total,
+    <span class="fn">SUM</span>(salio)  <span class="kw">AS</span> salidas
+  <span class="kw">FROM</span> empleados_full
+  <span class="kw">GROUP BY</span> departamento
+),
+rotacion <span class="kw">AS</span> (
+  <span class="kw">SELECT</span>
+    departamento,
+    total,
+    salidas,
+    <span class="fn">ROUND</span>(
+      salidas <span class="op">*</span> <span class="num">100.0</span>
+        <span class="op">/</span> total, <span class="num">2</span>
+    ) <span class="kw">AS</span> tasa_pct
+  <span class="kw">FROM</span> totales
+)
+<span class="kw">SELECT</span>
+  <span class="op">*</span>,
+  <span class="fn">RANK</span>() <span class="kw">OVER</span>(
+    <span class="kw">ORDER BY</span> tasa_pct <span class="kw">DESC</span>
+  ) <span class="kw">AS</span> ranking_riesgo
+<span class="kw">FROM</span> rotacion
+<span class="kw">ORDER BY</span> ranking_riesgo;</pre>
+  </div>
+</div>
+
+<div class="sec"><span>paso 02 · limpieza, eda y scoring con python</span></div>
+<div class="narrative">
+  <div class="narr-step">
+    <div class="narr-n">3</div>
+    <div class="narr-body">
+      <div class="narr-title">Limpieza y análisis exploratorio (EDA)</div>
+      <div class="narr-text">El CSV exportado tenía nulos en salario y horas extra, que se imputaron con la mediana del departamento respectivo. Se detectaron outliers en salario con el método IQR. Luego se calculó una matriz de correlaciones entre todas las variables numéricas y la variable objetivo "salio", revelando que salario (-0.42) y satisfacción (-0.38) son los factores con mayor poder predictivo.</div>
+    </div>
+  </div>
+  <div class="narr-step">
+    <div class="narr-n">4</div>
+    <div class="narr-body">
+      <div class="narr-title">Modelo de scoring de riesgo por empleado</div>
+      <div class="narr-text">Se construyó un score ponderado usando los 5 factores con mayor correlación con las salidas. Cada condición de riesgo suma puntos: salario bajo (3 pts), horas extra excesivas (2 pts), poca antigüedad (2 pts), baja satisfacción (2 pts) y bajo desempeño (1 pt). El score final clasifica a cada empleado como Bajo, Medio o Alto riesgo. El resultado se exportó como CSV para que RR.HH. pueda actuar directamente.</div>
+    </div>
+  </div>
+</div>
+
+<div class="py-box">
+  <div class="py-bar">
+    <span>🐍</span>
+    <span class="py-fn">analisis_rotacion.py</span>
+  </div>
+<pre><span class="py-kw">import</span> pandas <span class="py-kw">as</span> pd
+<span class="py-kw">import</span> numpy <span class="py-kw">as</span> np
+<span class="py-kw">import</span> matplotlib.pyplot <span class="py-kw">as</span> plt
+<span class="py-kw">import</span> seaborn <span class="py-kw">as</span> sns
+
+<span class="py-cmt"># ── 1. CARGA ───────────────────────────────────────────────────────</span>
+df = pd.<span class="py-fn2">read_csv</span>(<span class="py-str">'empleados_full.csv'</span>)
+
+<span class="py-cmt"># Imputar nulos con mediana por departamento</span>
+df[<span class="py-str">'salario_mensual'</span>] = df.<span class="py-fn2">groupby</span>(<span class="py-str">'departamento'</span>)[<span class="py-str">'salario_mensual'</span>].\
+    <span class="py-fn2">transform</span>(<span class="py-kw">lambda</span> x: x.<span class="py-fn2">fillna</span>(x.<span class="py-fn2">median</span>()))
+df[<span class="py-str">'horas_extra_mes_prom'</span>] = df[<span class="py-str">'horas_extra_mes_prom'</span>].<span class="py-fn2">fillna</span>(<span class="py-num">0</span>)
+
+<span class="py-cmt"># Variable objetivo</span>
+df[<span class="py-str">'salio'</span>] = df[<span class="py-str">'fecha_salida'</span>].<span class="py-fn2">notna</span>().<span class="py-fn2">astype</span>(<span class="py-num">int</span>)
+
+<span class="py-cmt"># ── 2. CORRELACIONES ───────────────────────────────────────────────</span>
+vars_num = [
+    <span class="py-str">'anos_antiguedad'</span>, <span class="py-str">'salario_mensual'</span>,
+    <span class="py-str">'nivel_satisfaccion'</span>, <span class="py-str">'horas_extra_mes_prom'</span>,
+    <span class="py-str">'calificacion_desempeno'</span>, <span class="py-str">'proyectos_completados'</span>
+]
+corr = df[vars_num <span class="py-op">+</span> [<span class="py-str">'salio'</span>]].<span class="py-fn2">corr</span>()[<span class="py-str">'salio'</span>].\
+    <span class="py-fn2">drop</span>(<span class="py-str">'salio'</span>).<span class="py-fn2">sort_values</span>()
+<span class="py-fn2">print</span>(<span class="py-str">"Top factores de riesgo:\n"</span>, corr)
+
+<span class="py-cmt"># ── 3. SCORE DE RIESGO ─────────────────────────────────────────────</span>
+p25 = df[<span class="py-str">'salario_mensual'</span>].<span class="py-fn2">quantile</span>(<span class="py-num">0.25</span>)
+
+df[<span class="py-str">'score_riesgo'</span>] = (
+    (df[<span class="py-str">'salario_mensual'</span>]       <span class="py-op">&lt;</span> p25)  .<span class="py-fn2">astype</span>(<span class="py-num">int</span>) <span class="py-op">*</span> <span class="py-num">3</span> <span class="py-op">+</span>
+    (df[<span class="py-str">'horas_extra_mes_prom'</span>]  <span class="py-op">&gt;</span> <span class="py-num">60</span>)  .<span class="py-fn2">astype</span>(<span class="py-num">int</span>) <span class="py-op">*</span> <span class="py-num">2</span> <span class="py-op">+</span>
+    (df[<span class="py-str">'anos_antiguedad'</span>]       <span class="py-op">&lt;</span> <span class="py-num">1</span>)   .<span class="py-fn2">astype</span>(<span class="py-num">int</span>) <span class="py-op">*</span> <span class="py-num">2</span> <span class="py-op">+</span>
+    (df[<span class="py-str">'nivel_satisfaccion'</span>]    <span class="py-op">&lt;</span> <span class="py-num">3</span>)   .<span class="py-fn2">astype</span>(<span class="py-num">int</span>) <span class="py-op">*</span> <span class="py-num">2</span> <span class="py-op">+</span>
+    (df[<span class="py-str">'calificacion_desempeno'</span>] <span class="py-op">&lt;</span> <span class="py-num">3</span>)   .<span class="py-fn2">astype</span>(<span class="py-num">int</span>) <span class="py-op">*</span> <span class="py-num">1</span>
+)
+df[<span class="py-str">'nivel_riesgo'</span>] = pd.<span class="py-fn2">cut</span>(
+    df[<span class="py-str">'score_riesgo'</span>],
+    bins=[<span class="py-num">-1</span>, <span class="py-num">2</span>, <span class="py-num">5</span>, <span class="py-num">10</span>],
+    labels=[<span class="py-str">'Bajo'</span>, <span class="py-str">'Medio'</span>, <span class="py-str">'Alto'</span>]
+)
+
+<span class="py-cmt"># ── 4. EXPORTAR ────────────────────────────────────────────────────</span>
+df_riesgo = df[df[<span class="py-str">'salio'</span>] <span class="py-op">==</span> <span class="py-num">0</span>].<span class="py-fn2">sort_values</span>(
+    <span class="py-str">'score_riesgo'</span>, ascending=<span class="py-kw">False</span>
+)
+df_riesgo.<span class="py-fn2">to_csv</span>(<span class="py-str">'empleados_riesgo.csv'</span>, index=<span class="py-kw">False</span>)
+
+alto = (df[<span class="py-str">'nivel_riesgo'</span>] <span class="py-op">==</span> <span class="py-str">'Alto'</span>).<span class="py-fn2">sum</span>()
+<span class="py-fn2">print</span>(<span class="py-str">f"Empleados riesgo alto : {alto}"</span>)
+<span class="py-fn2">print</span>(<span class="py-str">f"Costo potencial       : ${alto * 3500:,}"</span>)</pre>
+</div>
+
+<div class="sec"><span>paso 03 · resultados del análisis</span></div>
+<div class="narrative">
+  <div class="narr-step">
+    <div class="narr-n">5</div>
+    <div class="narr-body">
+      <div class="narr-title">Hallazgos y entregable final para RR.HH.</div>
+      <div class="narr-text">El análisis reveló que el 78% de las salidas ocurrió en empleados con menos de 2 años de antigüedad y salario por debajo del promedio del departamento. Se identificaron 89 empleados activos en riesgo alto, lo que representa un costo potencial de $311,500 si no se toman acciones. El CSV de riesgo fue entregado a RR.HH. para intervención directa en las próximas 4 semanas.</div>
+    </div>
+  </div>
+</div>
+
+<div class="kpis">
+  <div class="kpi">
+    <div class="kpi-lbl">Tasa de Rotación</div>
+    <div class="kpi-val">24.1%</div>
+    <div class="kpi-delta dn">↑ 2x el promedio del sector</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-lbl">Empleados Riesgo Alto</div>
+    <div class="kpi-val">89</div>
+    <div class="kpi-delta dn">Costo potencial: $311K</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-lbl">Dpto. Mayor Rotación</div>
+    <div class="kpi-val">Ventas</div>
+    <div class="kpi-delta dn">38.2% — 41% de salidas</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-lbl">Factor #1 de Riesgo</div>
+    <div class="kpi-val">Salario</div>
+    <div class="kpi-delta up">Correlación: −0.42</div>
+  </div>
+</div>
+
+<div class="chart-grid">
+  <div class="cpanel">
+    <div class="cp-title">Rotación por Departamento (%)</div>
+    <div class="cp-sub">SQL GROUP BY departamento → tasa calculada con CTE</div>
+    <div class="cw"><canvas id="cDpto"></canvas></div>
+  </div>
+  <div class="cpanel">
+    <div class="cp-title">Distribución de Riesgo de Rotación</div>
+    <div class="cp-sub">Python · pd.cut() sobre score_riesgo ponderado</div>
+    <div class="cw"><canvas id="cRiesgo"></canvas></div>
+  </div>
+</div>
+<div class="chart-grid-3">
+  <div class="cpanel">
+    <div class="cp-title">Salidas por Antigüedad</div>
+    <div class="cp-sub">78% salió antes de cumplir 2 años</div>
+    <div class="cw-sm"><canvas id="cAntiguedad"></canvas></div>
+  </div>
+  <div class="cpanel">
+    <div class="cp-title">Correlaciones con Rotación</div>
+    <div class="cp-sub">df.corr()['salio'].sort_values()</div>
+    <div class="cw-sm"><canvas id="cCorr"></canvas></div>
+  </div>
+  <div class="cpanel">
+    <div class="cp-title">Motivos de Salida</div>
+    <div class="cp-sub">Análisis del campo motivo_salida</div>
+    <div class="cw-sm"><canvas id="cMotivo"></canvas></div>
+  </div>
+</div>
+
+<div class="sec"><span>tabla de riesgo — empleados activos priorizados</span></div>
+<div class="risk-wrap">
+  <div class="risk-bar">
+    <span>⚠️</span>
+    <span class="risk-title">empleados_riesgo.csv — entregado a RR.HH. para intervención</span>
+  </div>
+  <div style="overflow-x:auto;">
+    <table>
+      <thead>
+        <tr><th>ID</th><th>Departamento</th><th>Cargo</th><th>Antigüedad</th><th>Salario</th><th>Horas Extra</th><th>Satisfacción</th><th>Score</th><th>Riesgo</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td style="font-family:var(--mono);color:var(--muted);">EMP-0412</td>
+          <td>Ventas</td><td>Asesor Comercial</td>
+          <td style="font-family:var(--mono);">0.8 años</td>
+          <td style="font-family:var(--mono);color:var(--red);">$620</td>
+          <td style="font-family:var(--mono);color:var(--red);">72 hrs</td>
+          <td style="font-family:var(--mono);color:var(--red);">2 / 5</td>
+          <td style="font-family:var(--mono);font-weight:700;color:var(--red);">9</td>
+          <td><span class="rpill r-alto">Alto</span></td>
+        </tr>
+        <tr>
+          <td style="font-family:var(--mono);color:var(--muted);">EMP-0287</td>
+          <td>Ventas</td><td>Supervisor Zona</td>
+          <td style="font-family:var(--mono);">1.1 años</td>
+          <td style="font-family:var(--mono);color:var(--red);">$710</td>
+          <td style="font-family:var(--mono);color:var(--yellow);">58 hrs</td>
+          <td style="font-family:var(--mono);color:var(--red);">2 / 5</td>
+          <td style="font-family:var(--mono);font-weight:700;color:var(--red);">7</td>
+          <td><span class="rpill r-alto">Alto</span></td>
+        </tr>
+        <tr>
+          <td style="font-family:var(--mono);color:var(--muted);">EMP-0534</td>
+          <td>Logística</td><td>Coordinador</td>
+          <td style="font-family:var(--mono);">1.4 años</td>
+          <td style="font-family:var(--mono);color:var(--yellow);">$850</td>
+          <td style="font-family:var(--mono);color:var(--red);">68 hrs</td>
+          <td style="font-family:var(--mono);color:var(--yellow);">3 / 5</td>
+          <td style="font-family:var(--mono);font-weight:700;color:var(--red);">6</td>
+          <td><span class="rpill r-alto">Alto</span></td>
+        </tr>
+        <tr>
+          <td style="font-family:var(--mono);color:var(--muted);">EMP-0619</td>
+          <td>At. al Cliente</td><td>Agente Senior</td>
+          <td style="font-family:var(--mono);">2.1 años</td>
+          <td style="font-family:var(--mono);color:var(--yellow);">$780</td>
+          <td style="font-family:var(--mono);color:var(--yellow);">55 hrs</td>
+          <td style="font-family:var(--mono);color:var(--yellow);">3 / 5</td>
+          <td style="font-family:var(--mono);font-weight:700;color:var(--yellow);">4</td>
+          <td><span class="rpill r-med">Medio</span></td>
+        </tr>
+        <tr>
+          <td style="font-family:var(--mono);color:var(--muted);">EMP-0103</td>
+          <td>TI</td><td>Analista de Datos</td>
+          <td style="font-family:var(--mono);">3.5 años</td>
+          <td style="font-family:var(--mono);color:var(--green);">$1,200</td>
+          <td style="font-family:var(--mono);color:var(--green);">38 hrs</td>
+          <td style="font-family:var(--mono);color:var(--green);">4 / 5</td>
+          <td style="font-family:var(--mono);font-weight:700;color:var(--green);">1</td>
+          <td><span class="rpill r-bajo">Bajo</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="sec"><span>conclusiones e impacto</span></div>
+<div class="insights">
+  <div class="ins">
+    <span class="ins-icon">💰</span>
+    <div class="ins-title">El salario es el factor #1</div>
+    <div class="ins-text">Correlación de <span class="ins-hl">−0.42 entre salario y rotación</span>. Empleados en el cuartil inferior tienen 3.2x más probabilidad de renunciar en el primer año. Un ajuste salarial focalizado en los 89 de riesgo alto costaría ~$42K vs $311K de reemplazarlos.</div>
+  </div>
+  <div class="ins">
+    <span class="ins-icon">⏰</span>
+    <div class="ins-title">Las horas extra como señal de alerta</div>
+    <div class="ins-text">Empleados con más de <span class="ins-hl">60 horas extra durante 3 meses</span> consecutivos tienen 61% de tasa de salida en los siguientes 90 días. Se propuso configurar una alerta automática en el sistema de RR.HH. cuando se supere ese umbral.</div>
+  </div>
+  <div class="ins">
+    <span class="ins-icon">🎯</span>
+    <div class="ins-title">ROI de retención: 7.4x</div>
+    <div class="ins-text">Intervenir a los <span class="ins-hl">89 empleados de riesgo alto</span> con ajustes salariales y redistribución de carga cuesta ~$42,000. El costo si todos salen es $311,500. El análisis de datos convirtió un problema de RR.HH. en una decisión financiera clara.</div>
+  </div>
+</div>
+
+<footer>
+  <div class="fl">Yosue Solis · <span>Data Analyst</span> · yosue.analyst@gmail.com</div>
+  <div class="fl">Proyecto 02 · Python + SQL · HR Analytics · 2024</div>
+</footer>
+
+<script>
+const ca = (id, type, data, opts={}) => {
+  const ctx = document.getElementById(id).getContext('2d');
+  return new Chart(ctx, { type, data, options: {
+    responsive:true, maintainAspectRatio:false,
+    plugins:{ legend:{ display: opts.legend||false, labels:{color:'#718096',font:{size:10,family:'JetBrains Mono'}} } },
+    scales: opts.noScales ? {} : {
+      x:{ grid:{color:'rgba(255,255,255,0.03)'}, ticks:{color:'#718096',font:{size:9,family:'JetBrains Mono'}} },
+      y:{ grid:{color:'rgba(255,255,255,0.05)'}, ticks:{color:'#718096',font:{size:9,family:'JetBrains Mono'}} }
+    },
+    ...opts.extra
+  }});
+};
+
+ca('cDpto','bar',{
+  labels:['Ventas','Logística','At. Cliente','Operaciones','Finanzas','TI','RR.HH.'],
+  datasets:[{
+    data:[38.2,29.1,24.6,21.3,14.7,10.2,8.9],
+    backgroundColor: ctx => ctx.dataIndex === 0 ? 'rgba(252,129,129,0.8)' : 'rgba(167,139,250,0.5)',
+    borderColor: ctx => ctx.dataIndex === 0 ? '#fc8181' : '#a78bfa',
+    borderWidth:1, borderRadius:3
+  }]
+},{extra:{plugins:{tooltip:{callbacks:{label:c=>`${c.raw}%`}}}}});
+
+ca('cRiesgo','doughnut',{
+  labels:['Riesgo Bajo','Riesgo Medio','Riesgo Alto'],
+  datasets:[{
+    data:[672,239,89],
+    backgroundColor:['rgba(104,211,145,0.75)','rgba(246,173,85,0.75)','rgba(252,129,129,0.75)'],
+    borderColor:['#68d391','#f6ad55','#fc8181'], borderWidth:1
+  }]
+},{legend:true,noScales:true,extra:{cutout:'58%',plugins:{tooltip:{callbacks:{label:c=>`${c.label}: ${c.raw} empleados`}}}}});
+
+ca('cAntiguedad','bar',{
+  labels:['< 6 meses','6m – 1 año','1 – 2 años','2 – 3 años','3 – 5 años','> 5 años'],
+  datasets:[{
+    data:[31,47,28,16,9,4],
+    backgroundColor:['rgba(252,129,129,0.85)','rgba(252,129,129,0.7)','rgba(246,173,85,0.65)','rgba(167,139,250,0.5)','rgba(99,179,237,0.45)','rgba(104,211,145,0.45)'],
+    borderRadius:3, borderWidth:0
+  }]
+},{extra:{plugins:{tooltip:{callbacks:{label:c=>`${c.raw} salidas`}}}}});
+
+ca('cCorr','bar',{
+  labels:['Salario','Satisfacción','Antigüedad','Proyectos','H. Extra','Desempeño'],
+  datasets:[{
+    data:[-0.42,-0.38,-0.31,-0.18,0.29,0.11],
+    backgroundColor: ctx => ctx.raw < 0 ? 'rgba(252,129,129,0.75)' : 'rgba(104,211,145,0.75)',
+    borderColor: ctx => ctx.raw < 0 ? '#fc8181' : '#68d391',
+    borderWidth:1, borderRadius:3
+  }]
+},{extra:{indexAxis:'y',plugins:{tooltip:{callbacks:{label:c=>`r = ${c.raw}`}}}}});
+
+ca('cMotivo','doughnut',{
+  labels:['Mejor oferta','Clima laboral','Sobrecarga','Salario bajo','Personal','Otros'],
+  datasets:[{
+    data:[34,21,18,15,7,5],
+    backgroundColor:['rgba(252,129,129,0.75)','rgba(167,139,250,0.75)','rgba(246,173,85,0.7)','rgba(99,179,237,0.65)','rgba(104,211,145,0.6)','rgba(113,128,150,0.5)'],
+    borderWidth:1
+  }]
+},{legend:true,noScales:true,extra:{cutout:'50%',plugins:{tooltip:{callbacks:{label:c=>`${c.label}: ${c.raw}%`}}}}});
+</script>
+</body>
+</html>
